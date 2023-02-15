@@ -1092,7 +1092,7 @@ void test_solvepnp3() {
 
         pt_cam = T * pt_world;
 
-        // 相机坐标系变换至像素坐标系
+        // 相机坐标系变换至像素坐标系.
         float x = pt_cam.at<double>(0, 0);
         float y = pt_cam.at<double>(1, 0);
         float z = pt_cam.at<double>(2, 0);
