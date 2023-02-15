@@ -1,0 +1,3 @@
+/media/ros/A666B94D66B91F4D/ros/learning/get_coord/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/media/ros/A666B94D66B91F4D/ros/learning/get_coord/cmake-build-debug/CMakeFiles/edit_cache.dir
+/media/ros/A666B94D66B91F4D/ros/learning/get_coord/cmake-build-debug/CMakeFiles/get_coord.dir
