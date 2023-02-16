@@ -1179,10 +1179,14 @@ void test_solvepnp5() {
     // [1430.94, 822.685]
     // [1265.53, 498.746]
     // [757.977, 495.399]
-    float twoDim[4][2] = {{651,  809},
-                          {1233, 822},
-                          {1108, 490},
-                          {761,  483}};  // 去畸变的点
+//    float twoDim[4][2] = {{651,  809},
+//                          {1233, 822},
+//                          {1108, 490},
+//                          {761,  483}};  // 去畸变的点 除以1.4
+    float twoDim[4][2] = {{685,  811},
+                          {1194, 822},
+                          {1086, 491},
+                          {782,  484}};  // 去畸变的点 除以1.6
 
     vector<Point3f> outDim;
     vector<Point2f> inDim;
@@ -1203,7 +1207,7 @@ void test_solvepnp5() {
     cv::Size imageSize(ImgWidth, ImgHeight);
     const double alpha = 0;
     const cv::Mat K2 = (cv::Mat_<double>(3, 3)
-            << 1003.9989013289942 / 1.4, 0.0, 926.3763250309561, 0.0, 1004.1132782586517 / 1.0, 546.1004237610695, 0.0, 0.0, 1.0);
+            << 1003.9989013289942 / 1.6, 0.0, 926.3763250309561, 0.0, 1004.1132782586517 / 1.0, 546.1004237610695, 0.0, 0.0, 1.0);
     cv::Mat NewCameraMatrix = cv::getOptimalNewCameraMatrix(K2, D, imageSize, alpha, imageSize, 0);
     cout << NewCameraMatrix << endl;
 //
@@ -1405,6 +1409,254 @@ void test_solvepnp5() {
     cv::imwrite("dst_qujibian.jpg", dst_img);
 }
 
+// 验证了3D->2D是没什么问题的，用的是去畸变的像素点，solvepnp用的畸变系数为0，2D->3D也验证了
+void test_solvepnp5_2() {
+    // 看博客好像是坐标系没什么关系，对这个3D点，比如我就选择车头正中间的地面上的点作为世界坐标系的原点
+    float threeDim[4][3] = {{3000, 1500,  0}, // x y z的顺序
+                            {3000, -1680, 0},
+                            {6000, -1680, 0},
+                            {6000, 1500,  0}};  // 这个点是距离光心的位置？
+    // float twoDim[4][2] = { {628,797}, {1395,802}, {1258,501}, {763,497}};  // 原图
+    float twoDim[4][2] = {{685,  811},
+                          {1194, 822},
+                          {1086, 491},
+                          {782,  484}};  // 去畸变的点 除以1.6
+    float lane[18][2] = {
+//            {731,  1075},
+//            {752,  1022},
+//            {763,  970},
+//            {783,  917},
+//            {794,  865},
+//            {810,  812},
+//            {827,  760},
+//            {836,  707},
+//            {852,  655},
+//            {869,  602},
+//            {883,  550},
+//            {899,  497},
+//            {918,  445},
+//            {934,  392},
+//            {953,  340},
+//            {971,  287},
+//            {989,  235},
+//            {1007, 182},
+            {299, 1075},
+            {333, 1022},
+            {368, 970},
+            {411, 917},
+            {446, 865},
+            {484, 812},
+            {523, 760},
+            {564, 707},
+            {601, 655},
+            {638, 602},
+            {672, 550},
+            {709, 497},
+            {752, 445},
+            {786, 392},
+            {821, 340},
+            {860, 287},
+            {896, 235},
+            {930, 182},
+    };
+    float lane2[18][2] = {
+//            {1353,  1075},
+//            {1348,  1022},
+//            {1332,  970},
+//            {1318,  917},
+//            {1312,  865},
+//            {1298,  812},
+//            {1281,  760},
+//            {1265,  707},
+//            {1247,  655},
+//            {1232,  602},
+//            {1213,  550},
+//            {1202,  497},
+//            {1181,  445},
+//            {1163,  392},
+//            {1142,  340},
+//            {1128,  287},
+//            {1108,  235},
+//            {1095, 182},
+            {1796, 1075},
+            {1761, 1022},
+            {1724, 970},
+            {1689, 917},
+            {1650, 865},
+            {1612, 812},
+            {1576, 760},
+            {1540, 707},
+            {1504, 655},
+            {1467, 602},
+            {1432, 550},
+            {1394, 497},
+            {1367, 445},
+            {1320, 392},
+            {1280, 340},
+            {1240, 287},
+            {1203, 235},
+            {1166, 182},
+    };
+
+
+    vector<Point2f> lane_;
+    vector<Point2f> lane2_;
+    for (int i = 0; i < 18; i++) {
+        lane_.push_back(Point2f(lane[i][0], lane[i][1]));
+        lane2_.push_back(Point2f(lane2[i][0], lane2[i][1]));
+    }
+    vector<Point3f> outDim;
+    vector<Point2f> inDim;
+    vector<float> distCoeff(0);
+
+    for (int i = 0; i < 4; i++) {
+        outDim.push_back(Point3f(threeDim[i][0], threeDim[i][1], threeDim[i][2]));
+        inDim.push_back(Point2f(twoDim[i][0], twoDim[i][1]));
+    }
+
+//    const cv::Mat D = (cv::Mat_<double>(4, 1)
+//            << -0.06663067168381479, 0.0009026610617662017, -0.007498635027107796, 0.0019139336144852457);
+    const cv::Mat D = (cv::Mat_<double>(4, 1)
+            << -0.0526858350541784, -0.01873269061565343, 0.0060846931831152, -0.0016727061237763216);
+    const int ImgWidth = 1920;
+    const int ImgHeight = 1080;
+    cv::Size imageSize(ImgWidth, ImgHeight);
+    const double alpha = 0;
+//    const cv::Mat K2 = (cv::Mat_<double>(3, 3)
+//            << 1010.1193051331736 / 1.4, 0.0, 1007.7481675024154, 0.0, 1009.4943272753831 /
+//                                                                       1.0, 577.4709247205907, 0.0, 0.0, 1.0);
+    const cv::Mat K2 = (cv::Mat_<double>(3, 3)
+            << 1003.9989013289942 / 1.6, 0.0, 926.3763250309561, 0.0, 1004.1132782586517 / 1.0, 546.1004237610695, 0.0, 0.0, 1.0);
+    cv::Mat NewCameraMatrix = cv::getOptimalNewCameraMatrix(K2, D, imageSize, alpha, imageSize, 0);
+
+    Mat sourceImage = imread("/media/ros/A666B94D66B91F4D/ros/test_port/camera/2023-02-15-16-34-50-qujibian/frame0000.jpg");
+    namedWindow("Source", 1);
+    for (int i = 0; i < inDim.size(); ++i) {
+        circle(sourceImage, inDim[i], 3, Scalar(0, 255, 0), -1, 8);
+    }
+    // imshow("Source",sourceImage);
+
+
+//    Mat cameraMatrix(3,3,CV_32F);
+//    float tempMatrix[3][3] = { { 2697.6,0 ,597.4 }, { 0, 2682,515.6 }, { 0, 0 ,1} };
+//    for (int i = 0; i < 3;i++)
+//    {
+//        for (int j = 0; j < 3;j++)
+//        {
+//            cameraMatrix.at<float>(i, j) = tempMatrix[i][j];
+//        }
+//    }
+
+    Mat rvec1, tvec1;
+    solvePnP(outDim, inDim, NewCameraMatrix, Mat(), rvec1, tvec1);
+    cout << rvec1 << endl;
+    cout << tvec1 << endl;
+    cout << "11111111----------------------------------11111111" << endl;
+    cv::Mat rvecM1(3, 3, cv::DataType<double>::type);  //旋转矩阵
+    Rodrigues(rvec1, rvecM1);
+    cout << rvecM1 << endl;
+    cout << tvec1 << endl;
+    cout<<NewCameraMatrix<<endl;
+
+    // 此处用于求相机位于坐标系内的旋转角度,2D-3D的转换并不用求,
+    // 这边几个角度没什么用
+    const double PI = 3.1415926;
+    double thetaZ = atan2(rvecM1.at<double>(1, 0), rvecM1.at<double>(0, 0)) / PI * 180;
+    double thetaY = atan2(-1 * rvecM1.at<double>(2, 0), sqrt(rvecM1.at<double>(2, 1) * rvecM1.at<double>(2, 1)
+                                                             + rvecM1.at<double>(2, 2) * rvecM1.at<double>(2, 2))) /
+                    PI * 180;
+    double thetaX = atan2(rvecM1.at<double>(2, 1), rvecM1.at<double>(2, 2)) / PI * 180;
+    cout << "theta x  " << thetaX << endl << "theta Y: " << thetaY << endl << "theta Z: " << thetaZ << endl;
+
+
+    ///根据公式求Zc，即s
+    cv::Mat imagePoint = cv::Mat::ones(3, 1, cv::DataType<double>::type);
+    cv::Mat tempMat, tempMat2;
+    //输入一个2D坐标点，便可以求出相应的s
+    imagePoint.at<double>(0, 0) = 904;
+    imagePoint.at<double>(1, 0) = 490;
+    double zConst = 0;//实际坐标系的距离
+    //计算参数s
+    double s;
+    tempMat = rvecM1.inv() * NewCameraMatrix.inv() * imagePoint;  // M1矩阵
+    tempMat2 = rvecM1.inv() * tvec1;  // M2矩阵
+    s = zConst + tempMat2.at<double>(2, 0);
+    s /= tempMat.at<double>(2, 0);
+    cout << "s : " << s << endl;
+
+    // **********************************
+    ///3D to 2D
+    cv::Mat worldPoints = Mat::ones(4, 1, cv::DataType<double>::type);
+    worldPoints.at<double>(0, 0) = 6000;
+    worldPoints.at<double>(1, 0) = 1500;
+    worldPoints.at<double>(2, 0) = 0;
+    cout << "world Points :  " << worldPoints << endl;
+    Mat image_points = Mat::ones(3, 1, cv::DataType<double>::type);
+    //setIdentity(image_points);
+
+    // 下面这个流程能不能替换到透视变换那边
+    Mat RT_;
+    hconcat(rvecM1, tvec1, RT_);
+    cout << "RT_" << RT_ << endl;
+    image_points = NewCameraMatrix * RT_ * worldPoints;
+    Mat D_Points = Mat::ones(3, 1, cv::DataType<double>::type);
+    D_Points.at<double>(0, 0) = image_points.at<double>(0, 0) / image_points.at<double>(2, 0);
+    D_Points.at<double>(1, 0) = image_points.at<double>(1, 0) / image_points.at<double>(2, 0);
+    //cv::projectPoints(worldPoints, rvec1, tvec1, cameraMatrix1, distCoeffs1, imagePoints);
+    cout << "3D to 2D:   " << D_Points << endl;
+
+    //camera_coordinates
+    Mat camera_cordinates = -rvecM1.inv() * tvec1;
+
+    for (int i = 0; i < 18; ++i) {
+        imagePoint.at<double>(0, 0) = lane_[i].x;;
+        imagePoint.at<double>(1, 0) = lane_[i].y;
+        double zConst = 0;//实际坐标系的距离
+        //计算参数s
+        double s;
+        tempMat = rvecM1.inv() * NewCameraMatrix.inv() * imagePoint;
+        tempMat2 = rvecM1.inv() * tvec1;
+        s = zConst + tempMat2.at<double>(2, 0);
+        s /= tempMat.at<double>(2, 0);
+        // cout << "s : " << s << endl;
+        cv::Mat imagePoint_your_know = cv::Mat::ones(3, 1, cv::DataType<double>::type); //u,v,1
+        imagePoint_your_know.at<double>(0, 0) = lane_[i].x;
+        imagePoint_your_know.at<double>(1, 0) = lane_[i].y;
+        Mat wcPoint = rvecM1.inv() * (NewCameraMatrix.inv() * s * imagePoint_your_know - tvec1);
+        Point3f worldPoint(wcPoint.at<double>(0, 0), wcPoint.at<double>(1, 0), wcPoint.at<double>(2, 0));
+        // cout << "2D to 3D :" << worldPoint << endl;
+
+        imagePoint.at<double>(0, 0) = lane2_[i].x;;
+        imagePoint.at<double>(1, 0) = lane2_[i].y;
+        double zConst2 = 0;//实际坐标系的距离
+        //计算参数s
+        double s2;
+        tempMat = rvecM1.inv() * NewCameraMatrix.inv() * imagePoint;
+        tempMat2 = rvecM1.inv() * tvec1;
+        s2 = zConst2 + tempMat2.at<double>(2, 0);
+        s2 /= tempMat.at<double>(2, 0);
+        // cout << "s : " << s << endl;
+        cv::Mat imagePoint_your_know2 = cv::Mat::ones(3, 1, cv::DataType<double>::type); //u,v,1
+        imagePoint_your_know2.at<double>(0, 0) = lane2_[i].x;
+        imagePoint_your_know2.at<double>(1, 0) = lane2_[i].y;
+        Mat wcPoint2 = rvecM1.inv() * (NewCameraMatrix.inv() * s * imagePoint_your_know2 - tvec1);
+        Point3f worldPoint2(wcPoint2.at<double>(0, 0), wcPoint2.at<double>(1, 0), wcPoint2.at<double>(2, 0));
+        // cout << "2D to 3D :" << worldPoint2 << endl;
+        cout << "2D to 3D :" << worldPoint.y - worldPoint2.y << endl;
+    }
+//    int img_w = 1920;
+//    int img_h = 1080;
+//    cv::Mat dst_img(img_h,img_w,CV_8UC3);
+//    cv::Mat src_img = cv::imread("/media/ros/A666B94D66B91F4D/ros/test_port/camera/qujibian/1053.jpg");
+//    cv::warpPerspective(src_img,dst_img,rvecM1*tvec1,cv::Size(img_w,img_h));
+//
+//
+//
+//    imshow("Source", sourceImage);
+//    imshow("Source2", dst_img);
+//    waitKey(0);
+
+}
 
 // Mat.at<存储类型名称>(行，列)[通道]
 int main() {
@@ -1414,6 +1666,7 @@ int main() {
     // test_solvepnp();
     // OpenCVFisheyeImageUndistortion();
     test_solvepnp5();
+    test_solvepnp5_2();
     Mat *img = 0;
 //     Mat src = imread("/media/ros/A666B94D66B91F4D/ros/test_port/camera/qujibian/1053.jpg");
     Mat src = imread("/media/ros/A666B94D66B91F4D/ros/test_port/camera/2023-02-15-16-34-50-qujibian/frame0000.jpg");
