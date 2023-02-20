@@ -1166,10 +1166,10 @@ void test_solvepnp5() {
     cv::Mat rvec, tvec, R, T;
     // 点是按照1   2
     //       4   3
-    float threeDim[4][3] = {{3000, 1500,  0}, // x y z的顺序
-                            {3000, -1680, 0},
-                            {6000, -1680, 0},
-                            {6000, 1500,  0}};  // 这个点是距离光心的位置？
+    float threeDim[4][3] = {{3000, 1450,  0}, // x y z的顺序
+                            {3000, -1690, 0},
+                            {6000, -1690, 0},
+                            {6000, 1450,  0}};  // 这个点是距离光心的位置？
 //    float twoDim[4][2] = {{628,  797},
 //                          {1395, 802},
 //                          {1258, 501},
@@ -1179,15 +1179,23 @@ void test_solvepnp5() {
     // [1430.94, 822.685]
     // [1265.53, 498.746]
     // [757.977, 495.399]
+// car 3
 //    float twoDim[4][2] = {{651,  809},
 //                          {1233, 822},
 //                          {1108, 490},
 //                          {761,  483}};  // 去畸变的点 除以1.4
-    float twoDim[4][2] = {{685,  811},
-                          {1194, 822},
-                          {1086, 491},
-                          {782,  484}};  // 去畸变的点 除以1.6
 
+// car 1
+//    float twoDim[4][2] = {{685,  811},
+//                          {1194, 822},
+//                          {1086, 491},
+//                          {782,  484}};  // 去畸变的点 除以1.6
+
+// car 2
+    float twoDim[4][2] = {{727,  910},
+                          {1231, 907},
+                          {1120, 583},
+                          {821,  584}};  // 去畸变的点 除以1.6
     vector<Point3f> outDim;
     vector<Point2f> inDim;
     vector<float> distCoeff(0);
@@ -1199,7 +1207,7 @@ void test_solvepnp5() {
     // const cv::Mat K = (cv::Mat_<double>(3, 3)
     //         << 1010.1193051331736, 0.0, 1007.7481675024154, 0.0, 1009.4943272753831, 577.4709247205907, 0.0, 0.0, 1.0);
     const cv::Mat D = (cv::Mat_<double>(4, 1)
-            << -0.0526858350541784, -0.01873269061565343, 0.0060846931831152, -0.0016727061237763216);
+            << -0.054613280720461926,  -0.014843292079092893, 0.004670322686634465,  -0.0014125235895859126);
     const cv::Mat D2 = (cv::Mat_<double>(5, 1)
             << 0, 0, 0, 0, 0);
     const int ImgWidth = 1920;
@@ -1207,7 +1215,7 @@ void test_solvepnp5() {
     cv::Size imageSize(ImgWidth, ImgHeight);
     const double alpha = 0;
     const cv::Mat K2 = (cv::Mat_<double>(3, 3)
-            << 1003.9989013289942 / 1.6, 0.0, 926.3763250309561, 0.0, 1004.1132782586517 / 1.0, 546.1004237610695, 0.0, 0.0, 1.0);
+            << 1004.374739582285 / 1.6, 0.0, 941.5232440525655, 0.0, 1003.9191500026428, 592.1157654586079, 0.0, 0.0, 1.0);
     cv::Mat NewCameraMatrix = cv::getOptimalNewCameraMatrix(K2, D, imageSize, alpha, imageSize, 0);
     cout << NewCameraMatrix << endl;
 //
@@ -1318,7 +1326,7 @@ void test_solvepnp5() {
     float world_w = 70000;// 单位为mm
     float scale = img_w / world_w;
     cv::Mat dst_img(img_h, img_w, CV_8UC3);
-    cv::Mat src_img = cv::imread("/media/ros/A666B94D66B91F4D/ros/test_port/camera/2023-02-15-16-34-50-qujibian/frame0000.jpg");
+    cv::Mat src_img = cv::imread("/media/ros/A666B94D66B91F4D/ros/test_port/camera/car2_qujibian/frame0000.jpg");
     double count_matmul = 0;
     double count_copy = 0;
     double count_sqrt = 0;
@@ -1412,15 +1420,27 @@ void test_solvepnp5() {
 // 验证了3D->2D是没什么问题的，用的是去畸变的像素点，solvepnp用的畸变系数为0，2D->3D也验证了
 void test_solvepnp5_2() {
     // 看博客好像是坐标系没什么关系，对这个3D点，比如我就选择车头正中间的地面上的点作为世界坐标系的原点
-    float threeDim[4][3] = {{3000, 1500,  0}, // x y z的顺序
-                            {3000, -1680, 0},
-                            {6000, -1680, 0},
-                            {6000, 1500,  0}};  // 这个点是距离光心的位置？
-    // float twoDim[4][2] = { {628,797}, {1395,802}, {1258,501}, {763,497}};  // 原图
-    float twoDim[4][2] = {{685,  811},
-                          {1194, 822},
-                          {1086, 491},
-                          {782,  484}};  // 去畸变的点 除以1.6
+
+    // car 1
+//    float threeDim[4][3] = {{3000, 1500,  0}, // x y z的顺序
+//                            {3000, -1680, 0},
+//                            {6000, -1680, 0},
+//                            {6000, 1500,  0}};  // 这个点是距离光心的位置？
+//    // float twoDim[4][2] = { {628,797}, {1395,802}, {1258,501}, {763,497}};  // 原图
+//    float twoDim[4][2] = {{685,  811},
+//                          {1194, 822},
+//                          {1086, 491},
+//                          {782,  484}};  // 去畸变的点 除以1.6
+
+// car 2
+    float threeDim[4][3] = {{3000, 1450,  0}, // x y z的顺序
+                            {3000, -1690, 0},
+                            {6000, -1690, 0},
+                            {6000, 1450,  0}};  // 这个点是距离光心的位置？
+    float twoDim[4][2] = {{727,  910},
+                          {1231, 907},
+                          {1120, 583},
+                          {821,  584}};  // 去畸变的点 除以1.6
     float lane[18][2] = {
 //            {731,  1075},
 //            {752,  1022},
@@ -1516,8 +1536,10 @@ void test_solvepnp5_2() {
 
 //    const cv::Mat D = (cv::Mat_<double>(4, 1)
 //            << -0.06663067168381479, 0.0009026610617662017, -0.007498635027107796, 0.0019139336144852457);
+//    const cv::Mat D = (cv::Mat_<double>(4, 1)
+//            << -0.0526858350541784, -0.01873269061565343, 0.0060846931831152, -0.0016727061237763216);
     const cv::Mat D = (cv::Mat_<double>(4, 1)
-            << -0.0526858350541784, -0.01873269061565343, 0.0060846931831152, -0.0016727061237763216);
+            << -0.054613280720461926,  -0.014843292079092893, 0.004670322686634465,  -0.0014125235895859126);
     const int ImgWidth = 1920;
     const int ImgHeight = 1080;
     cv::Size imageSize(ImgWidth, ImgHeight);
@@ -1525,16 +1547,26 @@ void test_solvepnp5_2() {
 //    const cv::Mat K2 = (cv::Mat_<double>(3, 3)
 //            << 1010.1193051331736 / 1.4, 0.0, 1007.7481675024154, 0.0, 1009.4943272753831 /
 //                                                                       1.0, 577.4709247205907, 0.0, 0.0, 1.0);
+//    const cv::Mat K2 = (cv::Mat_<double>(3, 3)
+//            << 1003.9989013289942 / 1.6, 0.0, 926.3763250309561, 0.0, 1004.1132782586517 / 1.0, 546.1004237610695, 0.0, 0.0, 1.0);
     const cv::Mat K2 = (cv::Mat_<double>(3, 3)
-            << 1003.9989013289942 / 1.6, 0.0, 926.3763250309561, 0.0, 1004.1132782586517 / 1.0, 546.1004237610695, 0.0, 0.0, 1.0);
+            << 1004.374739582285 / 1.6, 0.0, 941.5232440525655, 0.0, 1003.9191500026428, 592.1157654586079, 0.0, 0.0, 1.0);
     cv::Mat NewCameraMatrix = cv::getOptimalNewCameraMatrix(K2, D, imageSize, alpha, imageSize, 0);
 
-    Mat sourceImage = imread("/media/ros/A666B94D66B91F4D/ros/test_port/camera/2023-02-15-16-34-50-qujibian/frame0000.jpg");
+    Mat sourceImage = imread("/media/ros/A666B94D66B91F4D/ros/test_port/camera/car2_qujibian/frame0000.jpg");
     namedWindow("Source", 1);
     for (int i = 0; i < inDim.size(); ++i) {
         circle(sourceImage, inDim[i], 3, Scalar(0, 255, 0), -1, 8);
     }
-    // imshow("Source",sourceImage);
+
+    for (auto &i:lane_){
+        cv::circle(sourceImage, i, 5, CV_RGB(255, 0, 0), -1);
+    }
+    for (auto &i:lane2_){
+        cv::circle(sourceImage, i, 5, CV_RGB(255, 0, 0), -1);
+    }
+
+    imshow("Source",sourceImage);
 
 
 //    Mat cameraMatrix(3,3,CV_32F);
@@ -1669,7 +1701,7 @@ int main() {
     test_solvepnp5_2();
     Mat *img = 0;
 //     Mat src = imread("/media/ros/A666B94D66B91F4D/ros/test_port/camera/qujibian/1053.jpg");
-    Mat src = imread("/media/ros/A666B94D66B91F4D/ros/test_port/camera/2023-02-15-16-34-50-qujibian/frame0000.jpg");
+    Mat src = imread("/media/ros/A666B94D66B91F4D/ros/test_port/camera/car2_qujibian/frame0000.jpg");
     img = &src;
     Mat src2 = src.clone();
     namedWindow("original image", WINDOW_AUTOSIZE);
